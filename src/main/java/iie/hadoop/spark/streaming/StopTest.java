@@ -5,6 +5,13 @@ import org.apache.spark.streaming.Duration;
 import org.apache.spark.streaming.api.java.JavaReceiverInputDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
 
+/**
+ * 
+ * 尝试Spark Stream执行一段时间后，可以控制其停止运行。
+ * 
+ * @author weixing
+ *
+ */
 public class StopTest {
 	public static void main(String[] args) {
 		SparkConf conf = new SparkConf().setMaster("local[2]").setAppName(

@@ -1,0 +1,3 @@
+该包包含了Spark和MapReduce算子示例。
+Spark算子示例在iie/hadoop/operator中，其中有Spark算子接口、Spark算子示例以及Spark算子使用示例。
+MapReduce算子示例在iie/hadoop/mapreduce中，其中的MapRCopyOp算子示例是从一个表复制到另外一个表的示例。

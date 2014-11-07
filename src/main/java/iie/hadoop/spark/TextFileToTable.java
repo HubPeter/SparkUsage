@@ -17,13 +17,14 @@ public class TextFileToTable {
 		String[] fieldTypes = { "int", "string" };
 		StructType schema = SparkUtils.getStructType(fieldNames, fieldTypes);
 
-		JavaRDD<HCatRecord> rdd1 = SparkUtils.readFromTextFile(jsc, "/path/to/file");
-		
+		JavaRDD<HCatRecord> rdd1 = SparkUtils.readFromTextFile(jsc,
+				"/path/to/file");
+
 		JavaRDD<HCatRecord> rdd2 = SparkUtils.filter(rdd1);
-		
+
 		JavaRDD<HCatRecord> rdd3 = SparkUtils.sparkSQL(jsc, rdd2, schema,
 				"test", "select * from test");
-		
+
 		SparkUtils.saveToTable(rdd3, "db", "tbl");
 		jsc.stop();
 	}

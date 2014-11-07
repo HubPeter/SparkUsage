@@ -36,9 +36,9 @@ public class SparkUtils {
 
 		for (int i = 0; i < fieldNames.length; ++i) {
 			HCatFieldSchema.Type type = HCatFieldSchema.Type
-					.valueOf(fieldTypes[i]);
+					.valueOf(fieldTypes[i].toUpperCase());
 			fieldSchemas
-					.add(new HCatFieldSchema(fieldNames[i], type, null, ""));
+					.add(new HCatFieldSchema(fieldNames[i], type, ""));
 		}
 		return new HCatSchema(fieldSchemas);
 	}
@@ -65,6 +65,11 @@ public class SparkUtils {
 	public static JavaRDD<HCatRecord> readFromTextFile(JavaSparkContext jsc,
 			String path) {
 		return jsc.textFile(path).map(new Function<String, HCatRecord>() {
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 3304807095529363352L;
+
 			@Override
 			public HCatRecord call(String line) throws Exception {
 				HCatRecord record = new DefaultHCatRecord();
@@ -87,6 +92,11 @@ public class SparkUtils {
 		JavaSchemaRDD temp = jssc.applySchema(
 				rdd.map(new Function<HCatRecord, Row>() {
 
+					/**
+					 * 
+					 */
+					private static final long serialVersionUID = -2691352236555642068L;
+
 					@Override
 					public Row call(HCatRecord record) throws Exception {
 						return Row.create(record.getAll());
@@ -96,6 +106,11 @@ public class SparkUtils {
 
 		jssc.registerRDDAsTable(temp, tblName);
 		return jssc.sql(sql).map(new Function<Row, HCatRecord>() {
+
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = -8730215956163612368L;
 
 			@Override
 			public HCatRecord call(Row row) throws Exception {
@@ -121,6 +136,11 @@ public class SparkUtils {
 						WritableComparable.class, HCatRecord.class)
 				.map(new Function<Tuple2<WritableComparable, HCatRecord>, HCatRecord>() {
 
+					/**
+					 * 
+					 */
+					private static final long serialVersionUID = 271668729623304968L;
+
 					@Override
 					public HCatRecord call(
 							Tuple2<WritableComparable, HCatRecord> v)
@@ -139,6 +159,11 @@ public class SparkUtils {
 		rdd.mapToPair(
 				new PairFunction<HCatRecord, WritableComparable, HCatRecord>() {
 
+					/**
+					 * 
+					 */
+					private static final long serialVersionUID = 3530199468954019029L;
+
 					@Override
 					public Tuple2<WritableComparable, HCatRecord> call(
 							HCatRecord record) throws Exception {
@@ -149,6 +174,11 @@ public class SparkUtils {
 
 	public static JavaRDD<HCatRecord> filter(JavaRDD<HCatRecord> rdd) {
 		return rdd.filter(new Function<HCatRecord, Boolean>() {
+
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 7195500411538098019L;
 
 			@Override
 			public Boolean call(HCatRecord record) throws Exception {
