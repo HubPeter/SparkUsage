@@ -4,18 +4,12 @@ import iie.hadoop.spark.SparkUtils;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hive.conf.HiveConf;
-import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
 import org.apache.hadoop.hive.metastore.MetaStoreUtils;
-import org.apache.hadoop.hive.metastore.api.FieldSchema;
-import org.apache.hadoop.hive.metastore.api.StorageDescriptor;
-import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.io.NullWritable;
+import org.apache.hadoop.mapreduce.Job;
 import org.apache.hive.hcatalog.common.HCatException;
-import org.apache.hive.hcatalog.common.HCatUtil;
 import org.apache.hive.hcatalog.data.DefaultHCatRecord;
 import org.apache.hive.hcatalog.data.HCatRecord;
 import org.apache.hive.hcatalog.data.schema.HCatSchema;
@@ -27,27 +21,23 @@ import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.streaming.Duration;
 import org.apache.spark.streaming.api.java.JavaDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
-import org.apache.thrift.TException;
 
 import scala.Tuple2;
 
 public class SparkStreamingTest {
 	public static void main(String[] args) {
-		JavaStreamingContext jsc = new JavaStreamingContext(new SparkConf()
-				.setAppName("SparkStreamingTest").set("spark.closure.serializer",
-						"org.apache.spark.serializer.KryoSerializer"),
-				new Duration(10000));
+		JavaStreamingContext jsc = new JavaStreamingContext(
+				new SparkConf().setAppName("SparkStreamingTest"), new Duration(
+						10000));
 		Configuration conf = new Configuration();
-		conf.set("hive.metastore.uris", "thrift://m105:9083");
 		conf.set(StoreToTable.DATABASE_NAME, "wx");
-		conf.set(StoreToTable.TABLE_NAME, "fromstreaming");
-		conf.set(LoadFromTextFile.DIRECTORY, "/user/weixing/streaming");
+		conf.set(StoreToTable.TABLE_NAME, "tbl_streaming_out");
+		conf.set(LoadFromTextFile.DIRECTORY, "/tmp/streaming");
 		conf.set(LoadFromTextFile.SCHEMA, "col1:int,col2:int,col3:int");
 		LoadFromTextFile loadOp = new LoadFromTextFile();
 		StoreToTable storeOp = new StoreToTable();
 		StreamWithSchema stream = loadOp.load(jsc, conf);
-//		stream.stream.print();
-//		storeOp.store(stream, conf);
+		storeOp.store(stream, conf);
 		jsc.start();
 		jsc.awaitTermination();
 	}
@@ -67,7 +57,8 @@ public class SparkStreamingTest {
 		}
 	}
 
-	public static class LoadFromTextFile {
+	public static class LoadFromTextFile implements Serializable {
+		private static final long serialVersionUID = -5718026961690960802L;
 		public static final String SCHEMA = "schema";
 		public static final String DIRECTORY = "directory";
 
@@ -115,7 +106,8 @@ public class SparkStreamingTest {
 		}
 	}
 
-	public static class StoreToTable {
+	public static class StoreToTable implements Serializable {
+		private static final long serialVersionUID = -2935046443983163196L;
 		public static final String DATABASE_NAME = "database.name";
 		public static final String TABLE_NAME = "table.name";
 
@@ -127,23 +119,20 @@ public class SparkStreamingTest {
 			String dbName = conf.get(DATABASE_NAME,
 					MetaStoreUtils.DEFAULT_DATABASE_NAME);
 			String tblName = conf.get(TABLE_NAME);
+			Job outputJob = null;
 			try {
-				// 根据用户设置的表名，创建目标表
-//				HiveMetaStoreClient client = HCatUtil
-//						.getHiveClient(new HiveConf());
-//				Table table = new Table();
-//				table.setDbName(dbName);
-//				table.setTableName(tblName);
-//
-//				StorageDescriptor sd = new StorageDescriptor();
-//				List<FieldSchema> cols = HCatUtil
-//						.getFieldSchemaList(stream.schema.getFields());
-//				sd.setCols(cols);
-//				table.setSd(sd);
-//				client.createTable(table);
-				HCatOutputFormat.setOutput(conf, null,
+				outputJob = new Job(new Configuration(), "output");
+				outputJob.setOutputFormatClass(HCatOutputFormat.class);
+				outputJob.setOutputKeyClass(NullWritable.class);
+				outputJob.setOutputValueClass(HCatRecord.class);
+				outputJob.getConfiguration().set("mapreduce.task.attempt.id",
+						"attempt__0000_r_000000_0");
+				outputJob.getConfiguration().set("mapred.task.partition", "2");
+				HCatOutputFormat.setOutput(outputJob,
 						OutputJobInfo.create(dbName, tblName, null));
-				HCatOutputFormat.setSchema(conf, stream.schema);
+				HCatSchema schema = HCatOutputFormat.getTableSchema(outputJob
+						.getConfiguration());
+				HCatOutputFormat.setSchema(outputJob, schema);
 			} catch (IOException e) {
 				e.printStackTrace();
 				return;
@@ -160,7 +149,8 @@ public class SparkStreamingTest {
 						}
 
 					}).saveAsNewAPIHadoopFiles("", "", NullWritable.class,
-					HCatRecord.class, HCatOutputFormat.class, conf);
+					HCatRecord.class, HCatOutputFormat.class,
+					outputJob.getConfiguration());
 		}
 	}
 }

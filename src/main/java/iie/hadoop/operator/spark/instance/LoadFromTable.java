@@ -1,6 +1,10 @@
 package iie.hadoop.operator.spark.instance;
 
+import iie.hadoop.operator.spark.interfaces.LoadOp;
+import iie.hadoop.operator.spark.interfaces.RDDWithSchema;
+
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
@@ -16,9 +20,6 @@ import scala.Tuple2;
 
 import com.google.common.collect.Lists;
 
-import iie.hadoop.operator.spark.interfaces.LoadOp;
-import iie.hadoop.operator.spark.interfaces.RDDWithSchema;
-
 /**
  * 
  * 实现的一个从表加载的Spark加载算子。
@@ -28,7 +29,11 @@ import iie.hadoop.operator.spark.interfaces.RDDWithSchema;
  * @author weixing
  *
  */
-public class LoadFromTable implements LoadOp {
+public class LoadFromTable implements LoadOp, Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 8892645107358023333L;
 	public static final String DATABASE_NAME = "database.name";
 	public static final String TABLE_NAME = "table.name";
 
@@ -43,8 +48,8 @@ public class LoadFromTable implements LoadOp {
 
 	@Override
 	public RDDWithSchema load(JavaSparkContext jsc, Configuration conf) {
-		
-		//获取用户设置的要载入的表
+
+		// 获取用户设置的要载入的表
 		String dbName = conf.get(DATABASE_NAME);
 		String tblName = conf.get(TABLE_NAME);
 		HCatSchema schema = null;
@@ -53,8 +58,9 @@ public class LoadFromTable implements LoadOp {
 			schema = HCatInputFormat.getTableSchema(conf);
 		} catch (IOException e) {
 			e.printStackTrace();
+			return null;
 		}
-		
+
 		// 构造HCatInputFormat，从对应的文件中读取数据，生成RDD
 		JavaRDD<HCatRecord> rdd = jsc
 				.newAPIHadoopRDD(conf, HCatInputFormat.class,

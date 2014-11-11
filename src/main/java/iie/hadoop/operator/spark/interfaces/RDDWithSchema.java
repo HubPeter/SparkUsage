@@ -1,5 +1,7 @@
 package iie.hadoop.operator.spark.interfaces;
 
+import java.io.Serializable;
+
 import org.apache.hive.hcatalog.data.HCatRecord;
 import org.apache.hive.hcatalog.data.schema.HCatSchema;
 import org.apache.spark.api.java.JavaRDD;
@@ -15,7 +17,9 @@ import org.apache.spark.api.java.JavaRDD;
  * @author weixing
  *
  */
-public class RDDWithSchema {
+public class RDDWithSchema implements Serializable {
+	private static final long serialVersionUID = 8387140099895743918L;
+
 	public final HCatSchema schema;
 	public final JavaRDD<HCatRecord> rdd;
 

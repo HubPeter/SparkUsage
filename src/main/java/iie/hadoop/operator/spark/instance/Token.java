@@ -1,8 +1,10 @@
 package iie.hadoop.operator.spark.instance;
 
+import java.io.Serializable;
 import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hive.serde2.typeinfo.TypeInfoFactory;
 import org.apache.hive.hcatalog.common.HCatException;
 import org.apache.hive.hcatalog.data.DefaultHCatRecord;
 import org.apache.hive.hcatalog.data.HCatRecord;
@@ -29,16 +31,15 @@ import iie.hadoop.operator.spark.interfaces.TransformOp;
  * @author weixing
  *
  */
-public class Token implements TransformOp {
-
+public class Token implements TransformOp, Serializable {
+	private static final long serialVersionUID = -5052011103015578631L;
 	public static String TOKEN_COLUMNS = "token.columns";
-
 	public static HCatSchema tokenSubSchema;
 	static {
 		try {
 			tokenSubSchema = new HCatSchema(
-					Lists.newArrayList(new HCatFieldSchema(null, Type.STRING,
-							null)));
+					Lists.newArrayList(new HCatFieldSchema(null,
+							TypeInfoFactory.stringTypeInfo, null)));
 		} catch (HCatException e) {
 			e.printStackTrace();
 		}
@@ -72,7 +73,7 @@ public class Token implements TransformOp {
 				e.printStackTrace();
 			}
 		}
-		
+
 		// 对指定列进行分词，生成新的RDD
 		JavaRDD<HCatRecord> newRDD = rdd
 				.map(new Function<HCatRecord, HCatRecord>() {
