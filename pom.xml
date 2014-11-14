@@ -16,6 +16,7 @@
 		<hadoop.version>2.5.0-cdh5.2.0</hadoop.version>
 		<hive.version>0.13.1-cdh5.2.0</hive.version>
 		<hbase.version>0.98.6-cdh5.2.0</hbase.version>
+		<kafka.version>0.8.1.1</kafka.version>
 	</properties>
 
 	<repositories>
@@ -130,6 +131,11 @@
 			<groupId>org.apache.hadoop</groupId>
 			<artifactId>hadoop-mapreduce-client-core</artifactId>
 			<version>${hadoop.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.kafka</groupId>
+			<artifactId>kafka_2.10</artifactId>
+			<version>${kafka.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>jdk.tools</groupId>

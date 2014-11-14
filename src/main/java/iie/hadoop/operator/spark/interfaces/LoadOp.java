@@ -1,6 +1,9 @@
 package iie.hadoop.operator.spark.interfaces;
 
-import org.apache.hadoop.conf.Configuration;
+import org.apache.hive.hcatalog.data.HCatRecord;
+import org.apache.hive.hcatalog.data.Pair;
+import org.apache.hive.hcatalog.data.schema.HCatSchema;
+import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 
 /**
@@ -10,7 +13,7 @@ import org.apache.spark.api.java.JavaSparkContext;
  * @author weixing
  *
  */
-public interface LoadOp extends Configurable {
+public interface LoadOp {
 	/**
 	 * 
 	 * @param jsc
@@ -19,5 +22,5 @@ public interface LoadOp extends Configurable {
 	 *            在使用中，一般用于传递用户配置的目标表的模式及其表、目录等。
 	 * @return 返回指定表或目录的数据，其中包含schema。
 	 */
-	RDDWithSchema load(JavaSparkContext jsc, Configuration conf);
+	Pair<HCatSchema, JavaRDD<HCatRecord>> load(JavaSparkContext jsc);
 }

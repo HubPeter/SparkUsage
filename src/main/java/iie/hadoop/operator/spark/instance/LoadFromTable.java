@@ -1,15 +1,18 @@
 package iie.hadoop.operator.spark.instance;
 
 import iie.hadoop.operator.spark.interfaces.LoadOp;
-import iie.hadoop.operator.spark.interfaces.RDDWithSchema;
 
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.List;
 
+import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hive.metastore.MetaStoreUtils;
 import org.apache.hadoop.io.WritableComparable;
+import org.apache.hadoop.mapreduce.Job;
 import org.apache.hive.hcatalog.data.HCatRecord;
+import org.apache.hive.hcatalog.data.Pair;
 import org.apache.hive.hcatalog.data.schema.HCatSchema;
 import org.apache.hive.hcatalog.mapreduce.HCatInputFormat;
 import org.apache.spark.api.java.JavaRDD;
@@ -29,7 +32,7 @@ import com.google.common.collect.Lists;
  * @author weixing
  *
  */
-public class LoadFromTable implements LoadOp, Serializable {
+public class LoadFromTable implements LoadOp, Configurable, Serializable {
 	/**
 	 * 
 	 */
@@ -37,22 +40,31 @@ public class LoadFromTable implements LoadOp, Serializable {
 	public static final String DATABASE_NAME = "database.name";
 	public static final String TABLE_NAME = "table.name";
 
+	private String dbName;
+	private String tblName;
+
 	public LoadFromTable() {
 
 	}
 
 	@Override
-	public List<String> getKeys() {
-		return Lists.newArrayList(DATABASE_NAME, TABLE_NAME);
+	public void setConf(Configuration conf) {
+		this.dbName = conf.get(DATABASE_NAME,
+				MetaStoreUtils.DEFAULT_DATABASE_NAME);
+		this.tblName = conf.get(TABLE_NAME);
 	}
 
 	@Override
-	public RDDWithSchema load(JavaSparkContext jsc, Configuration conf) {
+	public Configuration getConf() {
+		return null;
+	}
+
+	@Override
+	public Pair<HCatSchema, JavaRDD<HCatRecord>> load(JavaSparkContext jsc) {
 
 		// 获取用户设置的要载入的表
-		String dbName = conf.get(DATABASE_NAME);
-		String tblName = conf.get(TABLE_NAME);
 		HCatSchema schema = null;
+		Configuration conf = new Configuration();
 		try {
 			HCatInputFormat.setInput(conf, dbName, tblName);
 			schema = HCatInputFormat.getTableSchema(conf);
@@ -75,7 +87,7 @@ public class LoadFromTable implements LoadOp, Serializable {
 						return v._2;
 					}
 				});
-		return new RDDWithSchema(schema, rdd);
+		return new Pair<HCatSchema, JavaRDD<HCatRecord>>(schema, rdd);
 	}
 
 }

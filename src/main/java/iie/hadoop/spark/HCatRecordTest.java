@@ -140,9 +140,12 @@ public class HCatRecordTest {
 
 	public static void main(String[] args) {
 		JavaSparkContext jsc = new JavaSparkContext(new SparkConf()
-		// .set(
-		// "spark.closure.serializer",
-		// "org.apache.spark.serializer.KryoSerializer")
+		 .set(
+		 "spark.closure.serializer",
+		 "org.apache.spark.serializer.KryoSerializer")
+		 .set(
+		 "spark.serializer",
+		 "org.apache.spark.serializer.KryoSerializer")
 		);
 		// List<Integer> list = new ArrayList<Integer>(3);
 		// list.add(1);
@@ -217,7 +220,8 @@ public class HCatRecordTest {
 					public HCatRecord call(
 							Tuple2<WritableComparable, HCatRecord> v1)
 							throws Exception {
-						HCatRecord v2 = new HCatRecord1(3);
+//						HCatRecord v2 = new HCatRecord1(3);
+						HCatRecord v2 = new DefaultHCatRecord(3);
 						for (int i = 0; i < v1._2.size(); ++i) {
 							v2.set(i, v1._2.get(i));
 						}

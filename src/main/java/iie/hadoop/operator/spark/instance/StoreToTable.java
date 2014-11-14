@@ -1,25 +1,25 @@
 package iie.hadoop.operator.spark.instance;
 
+import iie.hadoop.operator.spark.interfaces.StoreOp;
+
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.List;
 
+import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hive.metastore.MetaStoreUtils;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hive.hcatalog.data.HCatRecord;
+import org.apache.hive.hcatalog.data.Pair;
 import org.apache.hive.hcatalog.data.schema.HCatSchema;
 import org.apache.hive.hcatalog.mapreduce.HCatOutputFormat;
 import org.apache.hive.hcatalog.mapreduce.OutputJobInfo;
+import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.PairFunction;
+
 import scala.Tuple2;
-
-import com.google.common.collect.Lists;
-
-import iie.hadoop.operator.spark.interfaces.RDDWithSchema;
-import iie.hadoop.operator.spark.interfaces.StoreOp;
 
 /**
  * 
@@ -30,25 +30,31 @@ import iie.hadoop.operator.spark.interfaces.StoreOp;
  * @author weixing
  *
  */
-public class StoreToTable implements StoreOp, Serializable {
+public class StoreToTable implements StoreOp, Configurable, Serializable {
 	private static final long serialVersionUID = -7869241353265241365L;
 
 	public static final String DATABASE_NAME = "database.name";
 	public static final String TABLE_NAME = "table.name";
 
+	private String dbName;
+	private String tblName;
+
 	@Override
-	public List<String> getKeys() {
-		return Lists.newArrayList(DATABASE_NAME, TABLE_NAME);
+	public void setConf(Configuration conf) {
+		this.dbName = conf.get(DATABASE_NAME,
+				MetaStoreUtils.DEFAULT_DATABASE_NAME);
+		this.tblName = conf.get(TABLE_NAME);
 	}
 
 	@Override
-	public void store(JavaSparkContext jsc, Configuration conf,
-			RDDWithSchema rdd) {
-		String dbName = conf.get(DATABASE_NAME,
-				MetaStoreUtils.DEFAULT_DATABASE_NAME);
-		String tblName = conf.get(TABLE_NAME);
-		// TODO: 根据用户设置的表名，创建目标表
+	public Configuration getConf() {
+		return null;
+	}
 
+	@Override
+	public void store(JavaSparkContext jsc,
+			Pair<HCatSchema, JavaRDD<HCatRecord>> pair) {
+		// TODO: 根据用户设置的表名，创建目标表
 		Job outputJob = null;
 		try {
 			outputJob = new Job(new Configuration(), "output");
@@ -69,7 +75,7 @@ public class StoreToTable implements StoreOp, Serializable {
 		}
 
 		// 将RDD存储到目标表中
-		rdd.rdd.mapToPair(
+		pair.second.mapToPair(
 				new PairFunction<HCatRecord, NullWritable, HCatRecord>() {
 					private static final long serialVersionUID = -4658431554556766962L;
 
@@ -96,4 +102,5 @@ public class StoreToTable implements StoreOp, Serializable {
 		// table.setSd(sd);
 		// client.createTable(table);
 	}
+
 }

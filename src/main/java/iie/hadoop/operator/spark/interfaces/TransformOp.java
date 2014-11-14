@@ -1,8 +1,9 @@
 package iie.hadoop.operator.spark.interfaces;
 
-import java.util.List;
-
-import org.apache.hadoop.conf.Configuration;
+import org.apache.hive.hcatalog.data.HCatRecord;
+import org.apache.hive.hcatalog.data.Pair;
+import org.apache.hive.hcatalog.data.schema.HCatSchema;
+import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 
 /**
@@ -12,14 +13,13 @@ import org.apache.spark.api.java.JavaSparkContext;
  * @author weixing
  *
  */
-public interface TransformOp extends Configurable {
+public interface TransformOp {
 	/**
 	 * 
 	 * @param jsc
-	 * @param conf
-	 * @param rdds
+	 * @param pairs
 	 * @return
 	 */
-	RDDWithSchema transform(JavaSparkContext jsc, Configuration conf,
-			List<RDDWithSchema> rdds);
+	Pair<HCatSchema, JavaRDD<HCatRecord>> transform(JavaSparkContext jsc,
+			Pair<HCatSchema, JavaRDD<HCatRecord>>... pairs);
 }

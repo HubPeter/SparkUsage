@@ -1,13 +1,16 @@
 package iie.hadoop.operator.spark.instance;
 
-import java.io.Serializable;
-import java.util.List;
+import iie.hadoop.operator.spark.interfaces.TransformOp;
 
+import java.io.Serializable;
+
+import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hive.serde2.typeinfo.TypeInfoFactory;
 import org.apache.hive.hcatalog.common.HCatException;
 import org.apache.hive.hcatalog.data.DefaultHCatRecord;
 import org.apache.hive.hcatalog.data.HCatRecord;
+import org.apache.hive.hcatalog.data.Pair;
 import org.apache.hive.hcatalog.data.schema.HCatFieldSchema;
 import org.apache.hive.hcatalog.data.schema.HCatFieldSchema.Type;
 import org.apache.hive.hcatalog.data.schema.HCatSchema;
@@ -16,9 +19,6 @@ import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.Function;
 
 import com.google.common.collect.Lists;
-
-import iie.hadoop.operator.spark.interfaces.RDDWithSchema;
-import iie.hadoop.operator.spark.interfaces.TransformOp;
 
 /**
  * 
@@ -31,7 +31,7 @@ import iie.hadoop.operator.spark.interfaces.TransformOp;
  * @author weixing
  *
  */
-public class Token implements TransformOp, Serializable {
+public class Token implements TransformOp, Configurable, Serializable {
 	private static final long serialVersionUID = -5052011103015578631L;
 	public static String TOKEN_COLUMNS = "token.columns";
 	public static HCatSchema tokenSubSchema;
@@ -45,24 +45,31 @@ public class Token implements TransformOp, Serializable {
 		}
 	}
 
+	private String[] tokenCols;
+
 	@Override
-	public List<String> getKeys() {
-		return Lists.newArrayList(TOKEN_COLUMNS);
+	public void setConf(Configuration conf) {
+		this.tokenCols = conf.get(TOKEN_COLUMNS).split(",");
 	}
 
 	@Override
-	public RDDWithSchema transform(JavaSparkContext jsc, Configuration conf,
-			List<RDDWithSchema> rdds) {
+	public Configuration getConf() {
+		return null;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public Pair<HCatSchema, JavaRDD<HCatRecord>> transform(
+			JavaSparkContext jsc,
+			Pair<HCatSchema, JavaRDD<HCatRecord>>... pairs) {
 		// 获取用户设置的要分词的列
-		String tokenColsStr = conf.get(TOKEN_COLUMNS);
-		final String[] tokenCols = tokenColsStr.split(",");
-		if (rdds.size() != 1) {
+		if (pairs.length != 1) {
 			return null;
 		}
 		// 生成分词后的schema
-		final HCatSchema schema = rdds.get(0).schema;
-		JavaRDD<HCatRecord> rdd = rdds.get(0).rdd;
-		HCatSchema newSchema = new HCatSchema(schema.getFields());
+		final HCatSchema oldSchema = pairs[0].first;
+		JavaRDD<HCatRecord> rdd = pairs[0].second;
+		HCatSchema newSchema = new HCatSchema(oldSchema.getFields());
 		for (String tokenCol : tokenCols) {
 			HCatFieldSchema fieldSchema;
 			try {
@@ -88,7 +95,7 @@ public class Token implements TransformOp, Serializable {
 							newRecord.set(index++, value);
 						}
 						for (String tokenCol : tokenCols) {
-							String[] tokens = record.get(tokenCol, schema)
+							String[] tokens = record.get(tokenCol, oldSchema)
 									.toString().split(" ");
 							newRecord.set(index++, Lists.newArrayList(tokens));
 						}
@@ -96,7 +103,7 @@ public class Token implements TransformOp, Serializable {
 					}
 
 				});
-		return new RDDWithSchema(newSchema, newRDD);
+		return new Pair<HCatSchema, JavaRDD<HCatRecord>>(newSchema, newRDD);
 	}
 
 }
