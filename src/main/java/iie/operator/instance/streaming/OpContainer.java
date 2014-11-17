@@ -1,4 +1,4 @@
-package iie.operator.streaming.instance;
+package iie.operator.instance.streaming;
 
 import iie.operator.api.streaming.DStreamWithSchema;
 import iie.operator.api.streaming.LoadOp;

@@ -1,4 +1,4 @@
-package iie.operator.spark.instance;
+package iie.operator.instance.spark;
 
 import java.util.List;
 

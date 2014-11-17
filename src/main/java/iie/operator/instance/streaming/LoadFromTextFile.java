@@ -1,4 +1,4 @@
-package iie.operator.streaming.instance;
+package iie.operator.instance.streaming;
 
 import java.util.ArrayList;
 import java.util.List;

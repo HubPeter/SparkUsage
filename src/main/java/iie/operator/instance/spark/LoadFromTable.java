@@ -1,4 +1,4 @@
-package iie.operator.spark.instance;
+package iie.operator.instance.spark;
 
 import iie.operator.api.format.SerHCatInputFormat;
 import iie.operator.api.spark.LoadOp;

@@ -1,7 +1,7 @@
-package iie.operator.streaming.instance;
+package iie.operator.instance.spark;
 
-import iie.operator.api.streaming.DStreamWithSchema;
-import iie.operator.api.streaming.TransformOp;
+import iie.operator.api.spark.RDDWithSchema;
+import iie.operator.api.spark.TransformOp;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,15 +15,15 @@ import org.apache.hive.hcatalog.data.schema.HCatFieldSchema;
 import org.apache.hive.hcatalog.data.schema.HCatFieldSchema.Type;
 import org.apache.hive.hcatalog.data.schema.HCatSchema;
 import org.apache.spark.SerializableWritable;
+import org.apache.spark.api.java.JavaRDD;
+import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.Function;
-import org.apache.spark.streaming.api.java.JavaDStream;
-import org.apache.spark.streaming.api.java.JavaStreamingContext;
 
 import com.google.common.collect.Lists;
 
 /**
  * 
- * 实现的一个用于对指定列进行分词的Spark Streaming转换算子。
+ * 实现的一个用于对指定列进行分词的Spark转换算子。
  * 
  * 通过TOKEN_COLUMNS配置需要分词的列名，比如“col1,col2”。
  * 
@@ -51,15 +51,14 @@ public class Token extends TransformOp {
 	}
 
 	@Override
-	public List<DStreamWithSchema> transform(JavaStreamingContext jssc,
-			Configuration conf, List<DStreamWithSchema> dstreams) {
+	public List<RDDWithSchema> transform(JavaSparkContext jsc,
+			Configuration conf, List<RDDWithSchema> rdds) {
 		// 获取用户设置的要分词的列
 		final String[] tokenCols = conf.get(TOKEN_COLUMNS).split(",");
-		List<DStreamWithSchema> results = new ArrayList<DStreamWithSchema>(
-				dstreams.size());
-		for (DStreamWithSchema dstream : dstreams) {
+		List<RDDWithSchema> results = new ArrayList<RDDWithSchema>(rdds.size());
+		for (RDDWithSchema rdd : rdds) {
 			// 生成分词后的schema
-			final HCatSchema oldSchema = dstream.getSchema();
+			final HCatSchema oldSchema = rdd.getSchema();
 			HCatSchema newSchema = new HCatSchema(oldSchema.getFields());
 			for (String tokenCol : tokenCols) {
 				HCatFieldSchema fieldSchema;
@@ -73,8 +72,8 @@ public class Token extends TransformOp {
 			}
 
 			// 对指定列进行分词，生成新的RDD
-			JavaDStream<SerializableWritable<HCatRecord>> newStream = dstream
-					.getDStream()
+			JavaRDD<SerializableWritable<HCatRecord>> newRDD = rdd
+					.getRecords()
 					.map(new Function<SerializableWritable<HCatRecord>, SerializableWritable<HCatRecord>>() {
 						private static final long serialVersionUID = 5110377890285238705L;
 
@@ -100,7 +99,7 @@ public class Token extends TransformOp {
 						}
 
 					});
-			results.add(new DStreamWithSchema(null, newSchema, newStream));
+			results.add(new RDDWithSchema(null, newSchema, newRDD));
 		}
 		return results;
 	}
