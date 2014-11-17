@@ -1,27 +1,23 @@
-package iie.hadoop.operator.spark.instance;
+package iie.operator.spark.instance;
 
-import iie.hadoop.operator.spark.interfaces.LoadOp;
+import iie.operator.api.format.SerHCatInputFormat;
+import iie.operator.api.spark.LoadOp;
+import iie.operator.api.spark.RDDWithSchema;
 
 import java.io.IOException;
-import java.io.Serializable;
-import java.util.List;
 
-import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hive.metastore.MetaStoreUtils;
 import org.apache.hadoop.io.WritableComparable;
-import org.apache.hadoop.mapreduce.Job;
 import org.apache.hive.hcatalog.data.HCatRecord;
-import org.apache.hive.hcatalog.data.Pair;
 import org.apache.hive.hcatalog.data.schema.HCatSchema;
-import org.apache.hive.hcatalog.mapreduce.HCatInputFormat;
+import org.apache.spark.SerializableWritable;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.Function;
+import org.apache.spark.storage.StorageLevel;
 
 import scala.Tuple2;
-
-import com.google.common.collect.Lists;
 
 /**
  * 
@@ -32,62 +28,47 @@ import com.google.common.collect.Lists;
  * @author weixing
  *
  */
-public class LoadFromTable implements LoadOp, Configurable, Serializable {
-	/**
-	 * 
-	 */
+public class LoadFromTable extends LoadOp {
 	private static final long serialVersionUID = 8892645107358023333L;
 	public static final String DATABASE_NAME = "database.name";
 	public static final String TABLE_NAME = "table.name";
 
-	private String dbName;
-	private String tblName;
-
 	public LoadFromTable() {
-
+		super(null);
 	}
 
 	@Override
-	public void setConf(Configuration conf) {
-		this.dbName = conf.get(DATABASE_NAME,
+	public RDDWithSchema load(JavaSparkContext jsc, Configuration conf) {
+		String dbName = conf.get(DATABASE_NAME,
 				MetaStoreUtils.DEFAULT_DATABASE_NAME);
-		this.tblName = conf.get(TABLE_NAME);
-	}
-
-	@Override
-	public Configuration getConf() {
-		return null;
-	}
-
-	@Override
-	public Pair<HCatSchema, JavaRDD<HCatRecord>> load(JavaSparkContext jsc) {
+		String tblName = conf.get(TABLE_NAME);
 
 		// 获取用户设置的要载入的表
 		HCatSchema schema = null;
-		Configuration conf = new Configuration();
 		try {
-			HCatInputFormat.setInput(conf, dbName, tblName);
-			schema = HCatInputFormat.getTableSchema(conf);
+			SerHCatInputFormat.setInput(conf, dbName, tblName);
+			schema = SerHCatInputFormat.getTableSchema(conf);
 		} catch (IOException e) {
 			e.printStackTrace();
 			return null;
 		}
 
 		// 构造HCatInputFormat，从对应的文件中读取数据，生成RDD
-		JavaRDD<HCatRecord> rdd = jsc
-				.newAPIHadoopRDD(conf, HCatInputFormat.class,
-						WritableComparable.class, HCatRecord.class)
-				.map(new Function<Tuple2<WritableComparable, HCatRecord>, HCatRecord>() {
+		JavaRDD<SerializableWritable<HCatRecord>> rdd = jsc
+				.newAPIHadoopRDD(conf, SerHCatInputFormat.class,
+						WritableComparable.class, SerializableWritable.class)
+				.map(new Function<Tuple2<WritableComparable, SerializableWritable>, SerializableWritable<HCatRecord>>() {
 					private static final long serialVersionUID = -2362812254158054659L;
 
 					@Override
-					public HCatRecord call(
-							Tuple2<WritableComparable, HCatRecord> v)
+					public SerializableWritable<HCatRecord> call(
+							Tuple2<WritableComparable, SerializableWritable> v)
 							throws Exception {
 						return v._2;
 					}
 				});
-		return new Pair<HCatSchema, JavaRDD<HCatRecord>>(schema, rdd);
+		rdd.persist(StorageLevel.DISK_ONLY());
+		return new RDDWithSchema("", schema, rdd);
 	}
 
 }

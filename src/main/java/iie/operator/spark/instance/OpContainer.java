@@ -1,11 +1,17 @@
-package iie.hadoop.operator.spark;
+package iie.operator.spark.instance;
 
-import iie.hadoop.operator.spark.instance.LoadFromTable;
-import iie.hadoop.operator.spark.instance.StoreToTable;
-import iie.hadoop.operator.spark.instance.Token;
+import java.util.List;
+
+import iie.operator.api.spark.LoadOp;
+import iie.operator.api.spark.RDDWithSchema;
+import iie.operator.api.spark.StoreOp;
+import iie.operator.api.spark.TransformOp;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
+
+import com.google.common.collect.Lists;
 
 /**
  * 
@@ -25,25 +31,27 @@ public class OpContainer {
 		JavaSparkContext jsc = new JavaSparkContext(new SparkConf());
 
 		// 实例化三个算子。
-		LoadFromTable loadOp = new LoadFromTable();
-		Token transformOp = new Token();
-		StoreToTable storeOp = new StoreToTable();
+		LoadOp loadOp = new LoadFromTable();
+		TransformOp transformOp = new Token();
+		StoreOp storeOp = new StoreToTable();
 
 		// 算子进行串联执行。
 		// TODO: 根据程序参数，为每个算子设置不同配置。
 		Configuration conf1 = new Configuration();
 		conf1.set(LoadFromTable.DATABASE_NAME, "wx");
 		conf1.set(LoadFromTable.TABLE_NAME, "tbl_spark_in");
-		loadOp.setConf(conf1);
 		Configuration conf2 = new Configuration();
 		conf2.set(Token.TOKEN_COLUMNS, "col2");
-		transformOp.setConf(conf2);
 		Configuration conf3 = new Configuration();
 		conf3.set(StoreToTable.DATABASE_NAME, "wx");
 		conf3.set(StoreToTable.TABLE_NAME, "tbl_spark_out");
-		storeOp.setConf(conf3);
 
-		storeOp.store(jsc, transformOp.transform(jsc, loadOp.load(jsc)));
+		RDDWithSchema source = loadOp.load(jsc, conf1);
+		List<RDDWithSchema> results = transformOp.transform(jsc, conf2,
+				Lists.newArrayList(source));
+		for (RDDWithSchema result : results) {
+			storeOp.store(jsc, conf3, result);
+		}
 		jsc.stop();
 
 	}
