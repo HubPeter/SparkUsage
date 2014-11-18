@@ -46,10 +46,6 @@ public class Token extends TransformOp {
 		}
 	}
 
-	public Token() {
-		super(null);
-	}
-
 	@Override
 	public List<RDDWithSchema> transform(JavaSparkContext jsc,
 			Configuration conf, List<RDDWithSchema> rdds) {

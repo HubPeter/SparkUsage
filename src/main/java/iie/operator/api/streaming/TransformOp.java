@@ -16,10 +16,6 @@ import org.apache.spark.streaming.api.java.JavaStreamingContext;
 public abstract class TransformOp implements Serializable {
 	private static final long serialVersionUID = 3655484892882276916L;
 
-	public TransformOp(String name) {
-
-	}
-
 	/**
 	 * 
 	 * @param jssc

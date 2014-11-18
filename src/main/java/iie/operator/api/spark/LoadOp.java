@@ -15,10 +15,6 @@ import org.apache.spark.api.java.JavaSparkContext;
 public abstract class LoadOp implements Serializable {
 	private static final long serialVersionUID = -4810093850347548583L;
 
-	public LoadOp(String name) {
-
-	}
-
 	/**
 	 * 
 	 * @param jsc

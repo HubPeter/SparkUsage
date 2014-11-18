@@ -16,10 +16,6 @@ import org.apache.spark.api.java.JavaSparkContext;
 public abstract class TransformOp implements Serializable {
 	private static final long serialVersionUID = 1444706869180116973L;
 
-	public TransformOp(String name) {
-
-	}
-
 	/**
 	 * 
 	 * @param jsc

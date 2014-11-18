@@ -34,10 +34,6 @@ public class StoreToTable extends StoreOp {
 	public static final String DATABASE_NAME = "database.name";
 	public static final String TABLE_NAME = "table.name";
 
-	public StoreToTable() {
-		super(null);
-	}
-
 	@Override
 	public void store(JavaSparkContext jsc, Configuration conf,
 			RDDWithSchema rdd) {

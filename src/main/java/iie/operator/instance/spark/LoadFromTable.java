@@ -33,10 +33,6 @@ public class LoadFromTable extends LoadOp {
 	public static final String DATABASE_NAME = "database.name";
 	public static final String TABLE_NAME = "table.name";
 
-	public LoadFromTable() {
-		super(null);
-	}
-
 	@Override
 	public RDDWithSchema load(JavaSparkContext jsc, Configuration conf) {
 		String dbName = conf.get(DATABASE_NAME,

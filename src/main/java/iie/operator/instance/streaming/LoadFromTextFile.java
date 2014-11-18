@@ -22,10 +22,6 @@ public class LoadFromTextFile extends LoadOp {
 	public static final String SCHEMA = "schema";
 	public static final String DIRECTORY = "directory";
 
-	public LoadFromTextFile() {
-		super(null);
-	}
-
 	public DStreamWithSchema load(JavaStreamingContext jssc, Configuration conf) {
 		HCatSchema schema = null;
 		try {

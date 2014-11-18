@@ -46,10 +46,6 @@ public class Token extends TransformOp {
 		}
 	}
 
-	public Token() {
-		super(null);
-	}
-
 	@Override
 	public List<DStreamWithSchema> transform(JavaStreamingContext jssc,
 			Configuration conf, List<DStreamWithSchema> dstreams) {

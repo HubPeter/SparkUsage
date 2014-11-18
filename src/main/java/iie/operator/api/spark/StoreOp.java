@@ -15,10 +15,6 @@ import org.apache.spark.api.java.JavaSparkContext;
 public abstract class StoreOp implements Serializable {
 	private static final long serialVersionUID = 4203348313448761469L;
 
-	public StoreOp(String name) {
-
-	}
-
 	/**
 	 * @param jsc
 	 * @param conf

@@ -24,10 +24,6 @@ public class StoreToTable extends StoreOp {
 	public static final String DATABASE_NAME = "database.name";
 	public static final String TABLE_NAME = "table.name";
 
-	public StoreToTable() {
-		super(null);
-	}
-
 	public void store(JavaStreamingContext jssc, Configuration conf,
 			DStreamWithSchema dstream) {
 		String dbName = conf.get(DATABASE_NAME,

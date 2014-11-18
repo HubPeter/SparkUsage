@@ -15,10 +15,6 @@ import org.apache.spark.streaming.api.java.JavaStreamingContext;
 public abstract class StoreOp implements Serializable {
 	private static final long serialVersionUID = 6612375645495078109L;
 
-	public StoreOp(String name) {
-
-	}
-
 	/**
 	 * @param jsc
 	 * @param conf
