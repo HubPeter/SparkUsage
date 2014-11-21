@@ -1,8 +1,10 @@
 package iie.operator.instance.streaming;
 
+import java.io.File;
 import java.io.IOException;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.metastore.MetaStoreUtils;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.WritableComparable;
@@ -31,6 +33,13 @@ public class StoreToTable extends StoreOp {
 		String tblName = conf.get(TABLE_NAME);
 		Job outputJob = null;
 		try {
+			String[] resources = { "offline-core-site.xml",
+					"offline-hdfs-site.xml", "offline-hive-site.xml",
+					"offline-mapred-site.xml", "offline-ssl-client.xml",
+					"offline-yarn-site.xml" };
+			for (String resource : resources) {
+				conf.addResource(resource);
+			}
 			outputJob = new Job(conf, "output");
 			outputJob.setOutputFormatClass(SerHCatOutputFormat.class);
 			outputJob.setOutputKeyClass(WritableComparable.class);
@@ -65,5 +74,4 @@ public class StoreToTable extends StoreOp {
 						SerializableWritable.class, SerHCatOutputFormat.class,
 						outputJob.getConfiguration());
 	}
-
 }
