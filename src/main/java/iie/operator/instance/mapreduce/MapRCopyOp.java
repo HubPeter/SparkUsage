@@ -1,4 +1,4 @@
-package iie.hadoop.operator.mapreduce;
+package iie.operator.instance.mapreduce;
 
 import java.io.IOException;
 import java.util.List;
